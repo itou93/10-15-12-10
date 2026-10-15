@@ -74,7 +74,7 @@ p {
     background-color: #ddd;
 }
 
-/* マップ表示エリア（枠） */
+/* --- ベース設定の修正 --- */
 .map-container {
     position: relative;
     width: 100%;
@@ -86,18 +86,17 @@ p {
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    touch-action: none; /* JSでの上下左右スワイプを優先するため */
+    touch-action: none;
 }
 
-/* 画像とピンをまとめる内部ラッパー（ベース設定） */
 .map-content {
     position: absolute;
     top: 0;
     left: 0;
-    width: 200%; /* 横幅を200%にして左右半分ずつ表示可能にする */
+    width: 200%;
+    min-width: 1600px; /* ★スマホでも画像の最小横幅を1600pxに固定して縮みすぎを防止 */
     transition: transform 0.8s ease-out;
 }
-
 /* 平面図画像 */
 .map-image {
     width: 100%;
@@ -444,4 +443,14 @@ p {
     0% { transform: scale(0.8); }
     50% { transform: scale(1.15); }
     100% { transform: scale(1); }
+}
+/* --- スマホ表示（画面幅768px以下）時の自動調整 --- */
+@media (max-width: 768px) {
+    .map-container {
+        height: 280px; /* スマホ画面に合わせて表示窓の高さを調整 */
+    }
+
+    .floor-1f .map-content {
+        min-width: 1400px; /* スマホ用の横幅基準 */
+    }
 }
