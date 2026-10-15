@@ -463,10 +463,10 @@ p {
         transform: translate(0%, 0%);   /* 移動量は抑える */
     }
 
-    /* ② 【左下】HR棟・左 */
+   /* ② 【左下】HR棟・左 */
     .map-container.floor-1f.view-bottom:not(.view-right) .map-content {
         height: 320%;                   /* 左上と同じ拡大率 */
-        transform: translate(-21%, -25%); /* 移動量を小さく抑えて(-42%)真ん中〜下をカバー */
+        transform: translate(-21%, -23%); /* 移動量を小さく抑えて(-42%)真ん中〜下をカバー */
     }
 
     /* ③ 【右上】実習棟・右 */
@@ -478,6 +478,6 @@ p {
     /* ④ 【右下】HR棟・右 */
     .map-container.floor-1f.view-bottom.view-right .map-content {
         height: 320%;
-        transform: translate(-63%, -25%);
+        transform: translate(-63%, -23%);
     }
 }
