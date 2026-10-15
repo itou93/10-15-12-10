@@ -1,0 +1,68 @@
+<html> 
+<head>
+	<meta http-equiv="Content-Type" content="text/html:charset=EUC-JP">
+    <title>クイズ</title>
+    <style>
+
+        .back-btn {
+            position: fixed;
+             top: 10px;
+            left: 18px;
+
+            padding: 10px 20px;
+
+            background-color: #8672e0;
+            color: white;
+
+            font-size: 28px;
+            font-weight: bold;
+
+            text-decoration: none;
+
+            border: 2px solid white;
+            border-radius: 20px;
+
+            box-shadow: 0 3px 6px rgba(164, 165, 243, 0.3);
+        }
+        .next-btn{
+            border-radius: 20px;
+            padding: 25px 40px;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        body {
+            text-align: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .box {
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 80%;
+            max-width: 700px;
+            margin: 30px auto;
+            box-sizing: border-box;
+            box-shadow: 0 1px 2px black;
+        }
+    </style>
+
+</head>
+<body style="margin: 0px; overflow: hidden;">
+    <div class="box">
+    <h1>謎解きクイズ</h1>
+    <h2>画像を頼りに学校のどこかにある場所を見つけそこで謎を解こう！<br>難しいので余裕があれば挑戦してみてください！<br>
+        １問目はホームルーム棟１階にあります！
+    </h2>
+    <form action="quiz.html">
+    <button type="submit" class="next-btn">クイズを始める</button>
+    </form>
+    </div>
+    <a href="index.html" class="back-btn">← 戻る</a>
+</body>
+</html>

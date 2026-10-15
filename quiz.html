@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>クイズ</title>
+<style>
+body{
+text-align:center;margin:0;min-height:100vh;
+background:linear-gradient(135deg,#e0c3fc,#8ec5fc)
+}
+button{font-size:18px;padding:8px 16px;margin:5px}
+#startButton{
+position:fixed;top:10px;left:10px;border-radius:20px
+}
+.answer{
+font-size:18px;padding:8px;width:200px;
+box-sizing:border-box
+}
+#progress{margin:15px}
+.circle{
+display:inline-block;width:18px;height:18px;
+border-radius:50%;background:#aaa;margin:0 5px
+}
+.circle.correct{background:green}
+.circle.incorrect{background:red}
+#quiz1Image{width:min(700px,90vw)}
+#quiz2Area{
+position:relative;display:inline-block;max-width:100vw
+}
+#quiz2Image{
+width:min(996px,100vw);display:block
+}
+#canvas{
+position:absolute;left:0;top:0;
+width:100%;height:100%;touch-action:none
+}
+#quiz3Image{width:min(850px,90vw)}
+#setumei{white-space:pre-line}
+
+#quiz4Image{width:min(1000px,90vw)}
+</style>
+</head>
+
+<body>
+
+<button id="startButton" onclick="location.href='form.html'">
+スタートに戻る
+</button>
+
+<div id="progress">
+<span class="circle"></span>
+<span class="circle"></span>
+<span class="circle"></span>
+<span class="circle"></span>
+<span class="circle"></span>
+</div>
+
+<h1 id="questionNumber">第1問</h1>
+
+<div id="q1">
+<img id="quiz1Image" src="クイズ資料/quiz1.png" alt="第1問">
+<br>
+<input class="answer" id="answer1" type="text">
+<button onclick="checkQ1()">回答する</button>
+</div>
+
+<div id="q2" style="display:none">
+<div id="quiz2Area">
+<img id="quiz2Image" src="クイズ資料/quiz2.png" alt="第2問">
+<canvas id="canvas"></canvas>
+</div>
+<div>
+<input class="answer" id="answer2" type="text">
+<br>
+<button onclick="checkQ2()">回答する</button>
+<button onclick="retryQ2()">やり直す</button>
+</div>
+</div>
+
+<div id="q3" style="display:none">
+<img id="quiz3Image" src="クイズ資料/quiz3.png" alt="第3問">
+<br>
+<input class="answer" id="answer3" type="text">
+<button onclick="checkQ3()">回答する</button>
+</div>
+
+<div id="q4" style="display: none;">
+<img id="quiz3Image" src="クイズ資料/quiz4.png" alt="第4問">
+<br>
+<input class="answer" id="answer4" type="text">
+<button onclick="checkQ4()">回答する</button>
+</div>
+
+<div id="q5" style="display: none;">
+<img id="quiz3Image" src="クイズ資料/quiz5.png" alt="第5問">
+<br>
+<input class="answer" id="answer5" type="text">
+<button onclick="checkQ5()">回答する</button>
+</div>
+
+<p id="result"></p>
+<p id="setumei"></p>
+<div id="navigation"></div>
+
+<script>
+let q=1;
+let results=[null,null,null];
+let drawing=false;
+
+const result=document.getElementById("result");
+const setumei=document.getElementById("setumei");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+function checkQ1(){
+let a=document.getElementById("answer1").value;
+
+if(a==="start"){
+result.textContent="正解！";
+setumei.textContent="正解は「start」です。\nここから謎解きクイズスタートです！\n矢印通りに階段を上り２階についたら右に曲がり直進してください。\n実習等２階の謎を解きましょう。";
+setResult(true);
+}else{
+result.textContent="不正解……";
+setumei.textContent="正解は「start」です。\nここから謎解きクイズスタートです！\n矢印通りに階段を上り２階についたら右に曲がり直進してください。\n実習等２階の謎を解きましょう。";
+setResult(false);
+}
+
+document.getElementById("navigation").innerHTML=
+'<button onclick="nextQ(2)">次の問題</button>';
+}
+
+function checkQ2(){
+let a=document.getElementById("answer2").value;
+
+if(a==="調理"){
+result.textContent="正解！";
+setumei.textContent="正解は「調理」です！\n第3問へ進もう！";
+setResult(true);
+}else{
+result.textContent="不正解……";
+setumei.textContent="正解は「調理」です！\n絵をつなげると「はくまいうえのにもじよめ」になります。\n白米のイラストが描いてある集団調理の「調理」が答えになります。\n第3問へ進もう！";
+setResult(false);
+}
+
+document.getElementById("navigation").style.display="block";
+document.getElementById("navigation").innerHTML=
+'<button onclick="nextQ(3)">次の問題</button>';
+}
+
+function checkQ3(){
+let a=document.getElementById("answer3").value;
+
+if(a==="しんかんせん"){
+result.textContent="正解！";
+setumei.textContent="正解は「しんかんせん」です！\n次は実習棟三階で謎を解きましょう";
+setResult(true);
+}else{
+result.textContent="不正解……";
+setumei.textContent="正解は「しんかんせん」です！\n次は実習棟三階で謎を解きましょう";
+setResult(false);
+}
+
+document.getElementById("navigation").style.display="block";
+document.getElementById("navigation").innerHTML=
+'<button onclick="nextQ(4)">次の問題</button>';
+
+}
+
+function checkQ4(){
+let a=document.getElementById("answer4").value;
+
+if(a==="おりもの"){
+result.textContent="正解！";
+setumei.textContent="正解は「おりもの」です！\n次の問題は実習棟4階で解きましょう";
+setResult(true);
+}else{
+result.textContent="不正解……";
+setumei.textContent="正解は「おりもの」です！\n次の問題は実習棟4階で解きましょう";
+setResult(false);
+}
+
+document.getElementById("navigation").style.display="block";
+document.getElementById("navigation").innerHTML=
+'<button onclick="nextQ(5)">次の問題</button>';
+}
+
+function checkQ5(){
+let a=document.getElementById("answer5").value;
+
+if(a==="プログラム"){
+result.textContent="正解！";
+setumei.textContent="正解は「プログラム」です！";
+setResult(true);
+}else{
+result.textContent="不正解……";
+setumei.textContent="正解は「プログラム」です！";
+setResult(false);
+}
+
+document.getElementById("navigation").innerHTML="";
+document.getElementById("navigation").style.display="none";
+}
+
+function nextQ(num){
+q=num;
+document.getElementById("q1").style.display="none";
+document.getElementById("q2").style.display="none";
+document.getElementById("q3").style.display="none";
+document.getElementById("q4").style.display="none";
+document.getElementById("q5").style.display="none";
+document.getElementById("navigation").style.display="none";
+result.textContent="";
+setumei.textContent="";
+document.getElementById("questionNumber").textContent="第"+num+"問";
+
+if(num===2){
+document.getElementById("q2").style.display="block";
+resize();
+}else if(num===3){
+document.getElementById("q3").style.display="block";
+}else if(num===4){
+document.getElementById("q4").style.display="block";
+}else if(num===5){
+document.getElementById("q5").style.display="block";
+}
+}
+
+function setResult(ok){
+results[q-1]=ok?"correct":"incorrect";
+
+document.querySelectorAll(".circle").forEach((c,i)=>{
+c.className="circle";
+if(results[i])c.classList.add(results[i]);
+});
+}
+
+canvas.addEventListener("pointerdown",e=>{
+drawing=true;
+ctx.beginPath();
+ctx.moveTo(e.offsetX,e.offsetY);
+});
+
+canvas.addEventListener("pointermove",e=>{
+if(!drawing)return;
+ctx.lineTo(e.offsetX,e.offsetY);
+ctx.stroke();
+});
+
+canvas.addEventListener("pointerup",()=>{
+drawing=false;
+});
+
+canvas.addEventListener("pointerleave",()=>{
+drawing=false;
+});
+
+function retryQ2(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+function resize(){
+canvas.width=canvas.offsetWidth;
+canvas.height=canvas.offsetHeight;
+}
+
+window.addEventListener("resize",resize);
+</script>
+
+</body>
+</html>

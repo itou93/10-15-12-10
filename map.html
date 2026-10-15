@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARスタンプラリー - 校内マップ</title>
+    
+    <link rel="stylesheet" href="map.css?v=3">
+</head>
+<body>
+
+    <h1 id="floorTitle">1F 校内マップ</h1>
+    <p>スワイプまたはボタンで上下左右エリアを移動しよう！</p>
+
+    <!-- 階数切り替えボタン -->
+    <div class="floor-selector">
+        <button class="floor-btn active" onclick="switchFloor(1)">1F</button>
+        <button class="floor-btn" onclick="switchFloor(2)">2F</button>
+        <button class="floor-btn" onclick="switchFloor(3)">3F</button>
+        <button class="floor-btn" onclick="switchFloor(4)">4F</button>
+        <button class="floor-btn" onclick="switchFloor(5)">5F</button>
+    </div>
+
+    <!-- 上下左右エリア切替インジケーター & ボタン -->
+    <div class="area-control">
+        <div id="areaLabel" class="area-indicator">【 左エリア / 実習棟を表示中 】</div>
+        
+        <!-- Y軸（上下）移動ボタン -->
+        <div id="areaBtnGroupY" class="area-btn-group" style="margin-bottom: 6px;">
+            <button class="area-btn" onclick="setYAreaView(false)">▲ 実習棟へ移動</button>
+            <button class="area-btn" onclick="setYAreaView(true)">▼ HR棟へ移動</button>
+        </div>
+        <!-- X軸（左右）移動ボタン -->
+        <div id="areaBtnGroupX" class="area-btn-group">
+            <button class="area-btn" onclick="setXAreaView(false)">◀ 左エリアへ移動</button>
+            <button class="area-btn" onclick="setXAreaView(true)">右エリアへ移動 ▶</button>
+        </div>
+    </div>
+
+    <!-- 全体マップエリア -->
+    <div id="mapContainer" class="map-container floor-1f">
+        <div class="map-content">
+            <img id="mapImage" src="マップ画像/１F文字入り.png" alt="平面図" class="map-image">
+
+            <div class="map-overlay">
+                <!-- 1Fのピン群 -->
+                <div id="floor-1" class="floor-layer active">
+                    <div id="stamp-a" class="stamp" style="top: 15%; left: 25%;" onclick="openModal('a')"></div>
+                    <div id="stamp-b" class="stamp" style="top: 40%; left: 70%;" onclick="openModal('b')"></div>
+                    <div id="stamp-c" class="stamp" style="top: 75%; left: 40%;" onclick="openModal('c')"></div>
+                </div>
+
+                <!-- 2Fのピン群 -->
+                <div id="floor-2" class="floor-layer">
+                    <div id="stamp-d" class="stamp" style="top: 20%; left: 30%;" onclick="openModal('d')"></div>
+                    <div id="stamp-e" class="stamp" style="top: 60%; left: 60%;" onclick="openModal('e')"></div>
+                </div>
+
+                <!-- 3Fのピン群 -->
+                <div id="floor-3" class="floor-layer">
+                    <div id="stamp-f" class="stamp" style="top: 35%; left: 50%;" onclick="openModal('f')"></div>
+                </div>
+
+                <!-- 4Fのピン群 -->
+                <div id="floor-4" class="floor-layer">
+                    <div id="stamp-g" class="stamp" style="top: 50%; left: 45%;" onclick="openModal('g')"></div>
+                </div>
+
+                <!-- 5Fのピン群 -->
+                <div id="floor-5" class="floor-layer">
+                    <div id="stamp-h" class="stamp" style="top: 45%; left: 55%;" onclick="openModal('h')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="index.html" class="btn-back">戻る</a>
+
+    <!-- モーダル -->
+    <div id="stampModal" class="stamp-modal-overlay">
+        <div class="stamp-modal-card">
+            <div class="modal-close-btn" onclick="closeModal()">×</div>
+            <div id="modalTitle" class="modal-title">スポット</div>
+            <div id="modalDesc" class="modal-desc">スタンプを3秒長押ししてGETしよう！</div>
+
+            <div class="stamp-stage">
+                <div id="modalStampSpot" class="modal-stamp-spot">未獲得</div>
+                <div id="stampTool" class="stamp-tool"></div>
+                <svg class="progress-ring" id="progressRing">
+                    <circle id="progressCircle" cx="90" cy="90" r="72"></circle>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allStamps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+        const stampImages = {
+            'a': 'マップ画像/4F.png',
+            'b': '', 'c': '', 'd': '', 'e': '', 'f': '', 'g': '', 'h': ''
+        };
+
+        const spotNames = {
+            'a': 'スポット A', 'b': 'スポット B', 'c': 'スポット C', 'd': 'スポット D',
+            'e': 'スポット E', 'f': 'スポット F', 'g': 'スポット G', 'h': 'スポット H'
+        };
+
+        window.onload = function() {
+            refreshMapStamps();
+            setup2DSwipe();
+        };
+
+        // --- 4分割（上下・左右）制御フラグと表示更新 ---
+        let isBottomView = false; // Y軸（上下）
+        let isRightView = false;  // X軸（左右）
+
+        function updateAreaView() {
+            const container = document.getElementById('mapContainer');
+            const label = document.getElementById('areaLabel');
+
+            // クラスの付け外し
+            if (isBottomView) container.classList.add('view-bottom');
+            else container.classList.remove('view-bottom');
+
+            if (isRightView) container.classList.add('view-right');
+            else container.classList.remove('view-right');
+
+            // ラベル表示更新
+            const xText = isRightView ? '右エリア' : '左エリア';
+            const yText = isBottomView ? 'HR棟' : '実習棟';
+            label.textContent = `【 ${xText} / ${yText}を表示中 】`;
+        }
+
+        function setYAreaView(toBottom) {
+            isBottomView = toBottom;
+            updateAreaView();
+        }
+
+        function setXAreaView(toRight) {
+            isRightView = toRight;
+            updateAreaView();
+        }
+
+// --- 手での上下左右スワイプ検出（2Dスワイプ） ---
+        function setup2DSwipe() {
+            let touchStartX = 0, touchStartY = 0;
+            let touchEndX = 0, touchEndY = 0;
+            const container = document.getElementById('mapContainer');
+
+            container.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX; // ※ここが screenY になっていたのを screenX に修正
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            container.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+                const swipeThreshold = 30; // 感度(px)
+
+                // 縦移動の距離が大きい場合は縦スワイプ
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    if (diffY < -swipeThreshold) setYAreaView(true);  // 上へスワイプ ➔ 下（HR棟）を表示
+                    if (diffY > swipeThreshold)  setYAreaView(false); // 下へスワイプ ➔ 上（実習棟）を表示
+                } 
+                // 横移動の距離が大きい場合は横スワイプ
+                else {
+                    if (diffX < -swipeThreshold) setXAreaView(true);  // 左へスワイプ ➔ 右エリアを表示
+                    if (diffX > swipeThreshold)  setXAreaView(false); // 右へスワイプ ➔ 左エリアを表示
+                }
+            }
+        }
+        // 階数切り替え機能
+        function switchFloor(floorNum) {
+            document.getElementById('floorTitle').textContent = `${floorNum}F 校内マップ`;
+
+            const numKanji = ["０", "１", "２", "３", "４", "５"];
+            document.getElementById('mapImage').src = `マップ画像/${numKanji[floorNum]}F文字入り.png`;
+
+            const buttons = document.querySelectorAll('.floor-btn');
+            buttons.forEach((btn, idx) => {
+                if (idx + 1 === floorNum) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            for (let i = 1; i <= 5; i++) {
+                const layer = document.getElementById(`floor-${i}`);
+                if (layer) {
+                    if (i === floorNum) layer.classList.add('active');
+                    else layer.classList.remove('active');
+                }
+            }
+
+            const container = document.getElementById('mapContainer');
+            container.classList.remove('floor-1f', 'floor-2f', 'floor-3f', 'floor-4f', 'floor-5f');
+            container.classList.add(`floor-${floorNum}f`);
+
+            // 各フロア切替時は左上に戻す
+            isBottomView = false;
+            isRightView = false;
+            updateAreaView();
+        }
+
+        function refreshMapStamps() {
+            allStamps.forEach(id => {
+                const el = document.getElementById(`stamp-${id}`);
+                if (!el) return;
+
+                const isDone = localStorage.getItem(`stamp-${id}-done`) === '1';
+                const isReady = localStorage.getItem(`stamp-${id}-flag`) === '1';
+                const imgUrl = stampImages[id];
+
+                if (imgUrl) {
+                    el.style.backgroundImage = `url('${imgUrl}')`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.innerHTML = "";
+                } else {
+                    el.style.backgroundImage = "none";
+                }
+
+                if (isDone) {
+                    el.classList.remove("ready");
+                    el.classList.add("active");
+                } else if (isReady) {
+                    el.classList.remove("active");
+                    el.classList.add("ready");
+                } else {
+                    el.classList.remove("ready", "active");
+                }
+            });
+        }
+
+        // モーダル関連処理
+        let currentStampKey = '';
+        let progressInterval = null;
+        let holdDuration = 0;
+        const REQUIRED_TIME = 3000; 
+        const CIRCLE_CIRCUMFERENCE = 452;
+
+        const modal = document.getElementById('stampModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalSpot = document.getElementById('modalStampSpot');
+        const stampTool = document.getElementById('stampTool');
+        const progressRing = document.getElementById('progressRing');
+        const progressCircle = document.getElementById('progressCircle');
+
+        function openModal(typeKey) {
+            currentStampKey = typeKey;
+            modalTitle.textContent = spotNames[typeKey] || `スポット ${typeKey.toUpperCase()}`;
+            modal.style.display = 'flex';
+
+            const isDone = localStorage.getItem(`stamp-${typeKey}-done`) === '1';
+            const isReady = localStorage.getItem(`stamp-${typeKey}-flag`) === '1';
+            const imgUrl = stampImages[typeKey];
+
+            modalSpot.className = 'modal-stamp-spot';
+            modalSpot.style.animation = 'none';
+            stampTool.style.display = 'none';
+            stampTool.style.transform = 'none';
+            stampTool.style.opacity = '1';
+            progressRing.style.display = 'none';
+            progressCircle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+
+            if (imgUrl) {
+                modalSpot.style.backgroundImage = `url('${imgUrl}')`;
+                modalSpot.style.backgroundSize = 'cover';
+                modalSpot.style.backgroundPosition = 'center';
+                modalSpot.innerHTML = '';
+            } else {
+                modalSpot.style.backgroundImage = 'none';
+            }
+
+            if (isDone) {
+                modalSpot.classList.add('active');
+                modalDesc.textContent = 'スタンプ獲得済みです！';
+            } else if (isReady) {
+                modalSpot.classList.add('ready');
+                modalDesc.textContent = 'スタンプを3秒長押ししてGETしよう！';
+                stampTool.style.display = 'flex';
+                progressRing.style.display = 'block';
+            } else {
+                if (!imgUrl) modalSpot.innerHTML = '未獲得';
+                modalDesc.textContent = 'ARマーカーを読み取ると押せるようになります。';
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            resetPressing();
+        }
+
+        modalSpot.addEventListener('pointerdown', startPress);
+        window.addEventListener('pointerup', cancelPress);
+        window.addEventListener('pointercancel', cancelPress);
+
+        function startPress(e) {
+            if (!modalSpot.classList.contains('ready')) return;
+
+            e.preventDefault();
+            holdDuration = 0;
+            modalSpot.classList.add('pressing');
+
+            progressCircle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+
+            progressInterval = setInterval(() => {
+                holdDuration += 100;
+                let offset = CIRCLE_CIRCUMFERENCE - (CIRCLE_CIRCUMFERENCE * (holdDuration / REQUIRED_TIME));
+                progressCircle.style.strokeDashoffset = Math.max(0, offset);
+
+                if (holdDuration >= REQUIRED_TIME) {
+                    completeStamp();
+                }
+            }, 100);
+        }
+
+        function cancelPress() {
+            if (holdDuration < REQUIRED_TIME) resetPressing();
+        }
+
+        function resetPressing() {
+            clearInterval(progressInterval);
+            modalSpot.classList.remove('pressing');
+            progressCircle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+            holdDuration = 0;
+        }
+
+        function completeStamp() {
+            resetPressing();
+
+            stampTool.style.transform = 'translate(-45px, 45px) scale(1.2)';
+
+            setTimeout(() => {
+                modalSpot.classList.remove('ready');
+                modalSpot.classList.add('active');
+
+                modalSpot.style.animation = 'popImpact 0.4s ease-out';
+                modalDesc.textContent = 'スタンプを獲得しました！';
+                stampTool.style.opacity = '0';
+                progressRing.style.display = 'none';
+
+                localStorage.setItem(`stamp-${currentStampKey}-done`, '1');
+                refreshMapStamps();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
