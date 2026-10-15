@@ -444,13 +444,40 @@ p {
     50% { transform: scale(1.15); }
     100% { transform: scale(1); }
 }
-/* --- スマホ表示（画面幅768px以下）時の自動調整 --- */
+/* --- スマホ表示（画面幅768px以下）専用のズーム・可動域補正 --- */
 @media (max-width: 768px) {
+    /* 枠自体の高さ */
     .map-container {
-        height: 280px; /* スマホ画面に合わせて表示窓の高さを調整 */
+        height: 320px;
     }
 
+    /* 画像ラッパー全体の拡大設定（スマホ専用） */
     .floor-1f .map-content {
-        min-width: 1400px; /* スマホ用の横幅基準 */
+        width: 260%;         /* 横も少し大きめにして左右切替をはっきりさせる */
+        min-width: auto;     /* 先ほどの固定値をリセット */
+    }
+
+    /* ① 【左上】スマホ時：上側（実習棟）だけを大きく表示 */
+    .map-container.floor-1f:not(.view-right) .map-content {
+        height: 260%;        /* 縦をガッツリ拡大して下側（図書室）を枠外に追い出す */
+        transform: translate(0%, -5%);
+    }
+
+    /* ② 【左下】スマホ時：下側（図書室〜教室）を画面中央へ引き上げる */
+    .map-container.floor-1f.view-bottom:not(.view-right) .map-content {
+        height: 260%;
+        transform: translate(0%, -62%); /* -62% 付近で図書室〜HR棟がピッタリ入る */
+    }
+
+    /* ③ 【右上】スマホ時 */
+    .map-container.floor-1f.view-right .map-content {
+        height: 260%;
+        transform: translate(-42%, -5%);
+    }
+
+    /* ④ 【右下】スマホ時 */
+    .map-container.floor-1f.view-bottom.view-right .map-content {
+        height: 260%;
+        transform: translate(-42%, -62%);
     }
 }
